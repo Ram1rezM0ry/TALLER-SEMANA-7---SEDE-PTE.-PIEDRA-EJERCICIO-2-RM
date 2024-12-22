@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Formulario de Mascota</title>
+    <!-- Bootstrap 5 y Google Fonts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-transform: capitalize;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #28a745; /* Verde claro */
+            box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); /* Sombra verde clara */
+        }
+
+        .form-control::placeholder {
+            color: #999;
+        }
+
+        .btn {
+            border-radius: 30px;
+            padding: 10px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: scale(1.1);
+        }
+
+        .preview-img {
+    width: auto;  /* Elimina el tamaño fijo */
+    height: auto; /* Elimina el tamaño fijo */
+    max-width: 100%; /* Limita el tamaño máximo al 100% del contenedor */
+    max-height: 400px; /* Ajusta una altura máxima si es necesario */
+    object-fit: contain; /* Mantiene la proporción original de la imagen */
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+
+        .preview-img:hover {
+            transform: scale(1.1);
+        }
+
+        .mb-3 {
+            margin-bottom: 25px;
+        }
+
+        /* Animación para el formulario */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            animation: fadeInUp 1s ease-out;
+        }
+
+        /* Espaciado adicional */
+        .spacer {
+            height: 30px;
+        }
+
+        /* Estilo para los inputs de archivo */
+        input[type="file"] {
+            padding: 10px;
+        }
+
+        /* Mensaje de error */
+        .error-message {
+            color: red;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        /* Estilo para el borde rojo en caso de error */
+        .form-control.error {
+            border-color: red;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 th:text="${#strings.isEmpty(mascota.id)} ? 'Nueva Mascota' : 'Editar Mascota'"></h1>
+        <form th:action="@{/mascotas}" th:object="${mascota}" method="post" enctype="multipart/form-data">
+            
+            <!-- Campo ID (oculto solo en edición) -->
+            <div th:if="${mascota.id != null}">
+                <input type="hidden" th:field="*{id}" />
+            </div>
+             
+            <!-- Campo Nombre -->
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" id="nombre" th:field="*{nombre}" class="form-control" placeholder="Nombre de la mascota" oninput="validarNombre(event)" />
+                <div id="nombreError" class="error-message">Solo se permiten letras.</div>
+            </div>
+
+            <!-- Campo Edad -->
+            <div class="mb-3">
+                <label for="edad" class="form-label">Edad</label>
+                <input type="text" id="edad" th:field="*{edad}" class="form-control" placeholder="Edad de la mascota" oninput="validarEdad(event)" />
+                <div id="edadError" class="error-message">Solo se permiten números.</div>
+            </div>
+
+            <!-- Campo Especie -->
+            <div class="mb-3">
+                <label for="especie" class="form-label">Especie</label>
+                <input type="text" id="especie" th:field="*{especie}" class="form-control" placeholder="Especie de la mascota" oninput="validarEspecie(event)" />
+                <div id="especieError" class="error-message">Solo se permiten letras.</div>
+            </div>
+
+            <!-- Campo Raza -->
+            <div class="mb-3">
+                <label for="raza" class="form-label">Raza</label>
+                <input type="text" id="raza" th:field="*{raza}" class="form-control" placeholder="Raza de la mascota" oninput="validarRaza(event)" />
+                <div id="razaError" class="error-message">Solo se permiten letras.</div>
+            </div>
+
+            <!-- Campo Imagen -->
+            <div class="mb-3">
+                <label for="imagen" class="form-label">Imagen (Opcional)</label>
+                <input type="file" id="imagen" th:field="*{archivoImagen}" class="form-control" accept="image/*" onchange="previewImage(event)" />
+            </div>
+
+            <!-- Espacio adicional entre subir imagen y vista previa -->
+            <div class="spacer"></div>
+
+            <!-- Vista previa de la imagen -->
+            <div class="text-center">
+                 <img id="previewImagen" 
+                      th:src="${mascota.imagenBase64 != null} ? 'data:image/jpeg;base64,' + ${mascota.imagenBase64} : 'https://via.placeholder.com/150'" 
+                      alt="Vista previa de la imagen" 
+                      class="preview-img">
+            </div>
+            
+            <!-- Espacio adicional entre vista previa y botón -->
+            <div class="spacer"></div>
+
+            <!-- Botón Guardar -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-success w-50">Guardar</button>
+            </div>
+
+            <!-- Espacio adicional entre el formulario y el pie de página -->
+            <div class="spacer"></div>
+        </form>
+    </div>
+
+    <script>
+        // Función para validar el campo Nombre
+        function validarNombre(event) {
+            const input = event.target;
+            const errorMessage = document.getElementById('nombreError');
+            
+            // Expresión regular para solo letras (sin números ni caracteres especiales)
+            const regex = /^[a-zA-Z\s]*$/;
+            
+            if (!regex.test(input.value)) {
+                // Si el valor no es válido, eliminar el carácter no permitido
+                input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+                errorMessage.style.display = 'block'; // Mostrar mensaje de error
+                input.classList.add('error'); // Añadir la clase para el borde rojo
+            } else {
+                errorMessage.style.display = 'none'; // Ocultar mensaje de error si es válido
+                input.classList.remove('error'); // Eliminar la clase de borde rojo
+            }
+        }
+
+        // Función para validar el campo Edad
+        function validarEdad(event) {
+            const input = event.target;
+            const errorMessage = document.getElementById('edadError');
+            
+            // Solo permitir números
+            const regex = /^[0-9]*$/;
+            
+            if (!regex.test(input.value)) {
+                input.value = input.value.replace(/[^0-9]/g, ''); // Eliminar cualquier valor no numérico
+                errorMessage.style.display = 'block';
+                input.classList.add('error');
+            } else {
+                errorMessage.style.display = 'none';
+                input.classList.remove('error');
+            }
+        }
+
+        // Función para validar el campo Especie
+        function validarEspecie(event) {
+            const input = event.target;
+            const errorMessage = document.getElementById('especieError');
+            
+            // Expresión regular para solo letras
+            const regex = /^[a-zA-Z\s]*$/;
+            
+            if (!regex.test(input.value)) {
+                input.value = input.value.replace(/[^a-zA-Z\s]/g, ''); // Eliminar caracteres no permitidos
+                errorMessage.style.display = 'block';
+                input.classList.add('error');
+            } else {
+                errorMessage.style.display = 'none';
+                input.classList.remove('error');
+            }
+        }
+
+        // Función para validar el campo Raza
+        function validarRaza(event) {
+            const input = event.target;
+            const errorMessage = document.getElementById('razaError');
+            
+            // Expresión regular para solo letras
+            const regex = /^[a-zA-Z\s]*$/;
+            
+            if (!regex.test(input.value)) {
+                input.value = input.value.replace(/[^a-zA-Z\s]/g, ''); // Eliminar caracteres no permitidos
+                errorMessage.style.display = 'block';
+                input.classList.add('error');
+            } else {
+                errorMessage.style.display = 'none';
+                input.classList.remove('error');
+            }
+        }
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                const preview = document.getElementById('previewImagen');
+                preview.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Función para limpiar el error cuando el campo pierde el foco
+        function limpiarError(event) {
+            const input = event.target;
+            const errorMessage = document.getElementById(input.id + 'Error');
+    
+            errorMessage.style.display = 'none'; // Ocultar mensaje de error
+            input.classList.remove('error'); // Eliminar borde rojo
+        }
+
+        // Añadir el evento 'blur' (cuando el campo pierde el foco) a cada campo
+        document.getElementById('nombre').addEventListener('blur', limpiarError);
+        document.getElementById('edad').addEventListener('blur', limpiarError);
+        document.getElementById('especie').addEventListener('blur', limpiarError);
+        document.getElementById('raza').addEventListener('blur', limpiarError);
+    </script>
+</body>
+</html>
